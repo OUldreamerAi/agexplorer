@@ -19,3 +19,7 @@ button, .select, input[type="range"] {
       cursor:pointer;
       font-size:14px;
     }
+
+details.doc { margin: 12px auto; max-width: 980px; text-align:left; }
+details.doc summary { font-weight:700; color:var(--accent); cursor:pointer; }
+details.doc pre { background:#f9f6f0; padding:12px; border-radius:6px; overflow:auto; }
