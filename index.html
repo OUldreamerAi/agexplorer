@@ -16,22 +16,23 @@
         <label for="dob">Date of birth</label>
         <input id="dob" type="date" aria-label="date of birth" />
       </div>
+      <div class="col">
+      </div>
     </div>
 
     <div class="controls">
       <button id="calc">Calculate</button>
       <button id="live" class="secondary">Start live clock</button>
-      <button id="reset" class="secondary" type="button">Reset</button>
     </div>
 
     <div id="output" class="result" aria-live="polite">
-      <div class="tile"><div class="n" id="years">—</div><div class="label">Years (approx)</div></div>
-      <div class="tile"><div class="n" id="months">—</div><div class="label">Months (extra)</div></div>
-      <div class="tile"><div class="n" id="weeks">—</div><div class="label">Weeks (total)</div></div>
-      <div class="tile"><div class="n" id="days">—</div><div class="label">Days (total)</div></div>
-      <div class="tile"><div class="n" id="hours">—</div><div class="label">Hours (total)</div></div>
-      <div class="tile"><div class="n" id="minutes">—</div><div class="label">Minutes (total)</div></div>
-      <div class="tile"><div class="n" id="seconds">—</div><div class="label">Seconds (total)</div></div>
+      <div class="tile"><div class="n" id="years">—</div><div class="label">Years </div></div>
+      <div class="tile"><div class="n" id="months">—</div><div class="label">Months </div></div>
+      <div class="tile"><div class="n" id="weeks">—</div><div class="label">Weeks</div></div>
+      <div class="tile"><div class="n" id="days">—</div><div class="label">Days </div></div>
+      <div class="tile"><div class="n" id="hours">—</div><div class="label">Hours </div></div>
+      <div class="tile"><div class="n" id="minutes">—</div><div class="label">Minutes</div></div>
+      <div class="tile"><div class="n" id="seconds">—</div><div class="label">Seconds </div></div>
     </div>
 
   </main>
@@ -41,7 +42,6 @@
   const dobInput = document.getElementById('dob');
   const calcBtn = document.getElementById('calc');
   const liveBtn = document.getElementById('live');
-  const resetBtn = document.getElementById('reset');
   const output = document.getElementById('output');
 
   const ids = ['years','months','weeks','days','hours','minutes','seconds']
@@ -49,7 +49,7 @@
 
   let liveInterval = null;
 
-  // format: show numbers with locale separators; accept strings (returned as-is)
+
   function format(n){
     if (typeof n === 'number' && !isNaN(n)) return n.toLocaleString();
     return String(n);
@@ -67,13 +67,13 @@
     const totalDays = Math.floor(totalHours / 24);
     const totalWeeks = Math.floor(totalDays / 7);
 
-    // calendar-aware years / months / days breakdown
+
     let years = now.getFullYear() - birth.getFullYear();
     let months = now.getMonth() - birth.getMonth();
     let days = now.getDate() - birth.getDate();
 
     if (days < 0) {
-      // borrow days from previous month
+
       const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
       days += prevMonth.getDate();
       months -= 1;
@@ -89,19 +89,17 @@
     };
   }
 
-  function showResult(obj){
+ function showResult(obj){
     if (!obj){
       alert('Please enter a valid past date of birth.');
       return;
     }
     output.style.display = 'grid';
 
-    // approximate decimal years: include months and days as fractional year
-    const decimalYears = (obj.years + (obj.months / 12) + (obj.days / 365.25));
-    ids.years.textContent = format(Number(decimalYears.toFixed(2)));
+    ids.years.textContent = format(obj.years);
 
-    // months display should be a string like "3 m, 12 d"
-    ids.months.textContent = format(`${obj.months} m, ${obj.days} d`);
+    const totalMonths = obj.years * 12 + obj.months;
+    ids.months.textContent = format(totalMonths);
 
     ids.weeks.textContent = format(obj.totalWeeks);
     ids.days.textContent = format(obj.totalDays);
@@ -117,7 +115,6 @@
       return;
     }
 
-    // use midnight local time for the provided date
     const birth = new Date(dobVal + 'T00:00:00');
     const res = calcFromBirth(birth);
     if (!res){
@@ -129,14 +126,6 @@
 
   calcBtn.addEventListener('click', compute);
 
-  resetBtn.addEventListener('click', ()=>{
-    dobInput.value = '';
-    output.style.display = 'none';
-    // reset tiles visually
-    Object.values(ids).forEach(el => el.textContent = '—');
-    if (liveInterval){ clearInterval(liveInterval); liveInterval = null; liveBtn.textContent = 'Start live clock'; }
-  });
-
   liveBtn.addEventListener('click', ()=>{
     if (liveInterval){
       clearInterval(liveInterval);
@@ -144,17 +133,15 @@
       liveBtn.textContent = 'Start live clock';
       return;
     }
-    // require a DOB to start live mode
     if (!dobInput.value){
       alert('Please enter your date of birth to start live clock.');
       return;
     }
-    compute(); // initial
+    compute(); 
     liveInterval = setInterval(compute, 1000);
     liveBtn.textContent = 'Stop live clock';
   });
 
-  // allow Enter in the date input to calculate
   dobInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') compute(); });
 
 })();
