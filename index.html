@@ -1,18 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <link rel="stylesheet" href="style.css" />
+<head>
+  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>agexplorer</title>
+</head>
+<body>
+  <main class="card" role="main">
+    <h1>How long have you lived?</h1>
+    <p class="lead">Enter when you were born. </p>
 
-    <meta charset="utf-8" />
-    <title>agexplorer</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-  </head>
-  <body>
-    <h1>
-        Agexplorer
-    </h1>
-    <textarea id="inputText" placeholder="Try: hello world"></textarea><br>
-    <button id="btnUpside">Upside Down</button>
+    <div class="row">
+      <div class="col">
+        <label for="dob">Date of birth</label>
+        <input id="dob" type="date" aria-label="date of birth" />
+      </div>
+      <div style="width:12px"></div>
+      <div class="col">
+      </div>
+    </div>
 
-  </body>
+    <div class="controls">
+      <button id="calc">Calculate</button>
+      <button id="live">Start live clock</button>
+    </div>
+
+    <div id="output" class="result" aria-live="polite" style="display:none">
+      <div class="tile"><div class="n" id="years">—</div><div class="label">Years</div></div>
+      <div class="tile"><div class="n" id="months">—</div><div class="label">Months (extra)</div></div>
+      <div class="tile"><div class="n" id="weeks">—</div><div class="label">Weeks (total)</div></div>
+      <div class="tile"><div class="n" id="days">—</div><div class="label">Days (total)</div></div>
+      <div class="tile"><div class="n" id="hours">—</div><div class="label">Hours (total)</div></div>
+      <div class="tile"><div class="n" id="minutes">—</div><div class="label">Minutes (total)</div></div>
+      <div class="tile" style="grid-column:span 1"><div class="n" id="seconds">—</div><div class="label">Seconds (total)</div></div>
+    </div>
+
+</main>
+
+<script>
+(function(){
+  const dobInput = document.getElementById('dob');
+  const calcBtn = document.getElementById('calc');
+  const liveBtn = document.getElementById('live');
+  const output = document.getElementById('output');
+  const ids = ['years','months','weeks','days','hours','minutes','seconds'].reduce((o,id)=>{o[id]=document.getElementById(id);return o},{})
+
+  let liveInterval = null;
+  function format(n){return (typeof n === 'number') ? n.toLocaleString() : '—'}
+
+  function calcFromBirth(birth){
+    const now = new Date();
+    if (!(birth instanceof Date) || isNaN(birth)) return null;
+    if (birth > now) return null;
+
+    const totalMs = now - birth;
+    const totalSeconds = Math.floor(totalMs/1000);
+    const totalMinutes = Math.floor(totalSeconds/60);
+    const totalHours = Math.floor(totalMinutes/60);
+    const totalDays = Math.floor(totalHours/24);
+    const totalWeeks = Math.floor(totalDays/7);
+
+    // years / months / days breakdown (calendar-aware)
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+
+    if (days < 0) {
+      // borrow days from previous month
+      const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      days += prevMonth.getDate();
+      months -= 1;
+    }
+    if (months < 0) {
+      months += 12;
+      years -= 1;
+    }
+
+    return {
+      years, months, days,
+      totalWeeks, totalDays, totalHours, totalMinutes, totalSeconds,
+    };
+  }
+
+  function showResult(obj){
+    if (!obj){
+      alert('Please enter a valid past date of birth or age.');
+      return;
+    }
+    output.style.display = 'grid';
+    ids.years.textContent = format(obj.years + (obj.months/12).toFixed(2)*1) || format(obj.years);
+    ids.months.textContent = format(obj.months + ' m, ' + obj.days + ' d');
+    ids.weeks.textContent = format(obj.totalWeeks);
+    ids.days.textContent = format(obj.totalDays);
+    ids.hours.textContent = format(obj.totalHours);
+    ids.minutes.textContent = format(obj.totalMinutes);
+    ids.seconds.textContent = format(obj.totalSeconds);
+  }
+
+  function compute(){
+    const dobVal = dobInput.value;
+    const ageVal = ageInput.value;
+    let birth = null;
+    if (dobVal){
+      birth = new Date(dobVal + 'T00:00:00');
+    } else {
+      alert('Please enter either your date of birth or your age in years.');
+      return;
+    }
+    const res = calcFromBirth(birth);
+    if (!res){ alert('Please enter a valid past date.'); return; }
+    showResult(res);
+  }
+
+  calcBtn.addEventListener('click', ()=>{
+    compute();
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    dobInput.value = '';
+    ageInput.value = '';
+    output.style.display = 'none';
+    if (liveInterval) { clearInterval(liveInterval); liveInterval = null; liveBtn.textContent = 'Start live clock'; }
+  });
+
+  liveBtn.addEventListener('click', ()=>{
+    if (liveInterval){ clearInterval(liveInterval); liveInterval = null; liveBtn.textContent = 'Start live clock'; return; }
+    // start live updates (recalculate every 1s)
+    compute();
+    liveInterval = setInterval(compute, 1000);
+    liveBtn.textContent = 'Stop live clock';
+  });
+
+  // allow Enter in inputs to calculate
+  [dobInput, ageInput].forEach(inp => inp.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') compute(); }));
+
+})();
+</script>
+</body>
 </html>
