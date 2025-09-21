@@ -1,1 +1,10 @@
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  margin: 0;
+  padding: 28px;
+  text-align: center;
+    }
 
+ h1 { margin: 4px 0 8px 0; font-size: 22px; }
